@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.4.0/css/bootstrap.min.css" integrity="sha384-SI27wrMjH3ZZ89r4o+fGIJtnzkAnFs3E4qz9DIYioCQ5l9Rd/7UAa8DHcaL8jkWt" crossorigin="anonymous">
+    <title>公文翻譯機</title>
+    <style>
+        body {
+            background-color: #ffe6b3;
+        }
+        
+        pre {
+            white-space: pre-wrap;
+            word-break: keep-all
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>公文翻譯機</h1>
+
+        <div class="row">
+            <textarea id="in" class="form-control" name="origin" rows="10" placeholder="請輸入欲轉換之文字..."></textarea>
+        </div>
+
+        <hr>
+        <div class="row">
+            <pre id="output"></pre>
+        </div>
+    </div>
+</body>
+
+</html>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.4.0/js/bootstrap.min.js" integrity="sha384-3qaqj0lc6sV/qpzrc1N5DC6i1VRn/HyX4qdPaiEFbn54VjQBEU341pvjz7Dv3n6P" crossorigin="anonymous"></script>
+
+<script>
+    setInterval(detect, 500);
+    const conv_table = {
+        "俾": "以便",
+        "甫": "剛剛",
+        "復": "答覆、再次",
+        "迭": "經常",
+        "得": "可有可無",
+        "殆": "幾乎、恐怕",
+        "亟": "急切",
+        "遽": "突然、立即",
+        "逕": "直接",
+        "迄": "到、至今",
+        "頃": "不久、剛剛",
+        "悉": "知曉、全部",
+        "咸": "皆、都",
+        "旋": "隨即、頃刻",
+        "臻": "達到",
+        "殊": "極其、非常",
+        "滋": "發生、生出",
+        "嗣": "往後、從此",
+        "俟": "等到",
+        "抑": "或",
+        "尤": "更加",
+        //        "安": "豈可",
+        "爰": "於是",
+        "係": "是",
+        "蓋": "大概",
+        "裨益": "有所利益、幫助、補益",
+        "短絀": "經費不足",
+        "略以": "大概是",
+        "臚列": "逐一陳列、逐一表列",
+        "賡續": "持續不斷",
+        "更迭": "經常變動",
+        "剋日": "立即、馬上",
+        "或謂": "另一說法",
+        "惠允": "懇求同意",
+        "函囑": "來函吩咐",
+        "拮据": "經費很不足",
+        "前揭": "前面（或上面）所提過",
+        "上揭": "前面（或上面）所提過",
+        "闕漏": "欠缺",
+        "闕如": "欠缺",
+        "盱衡": "檢視情況",
+        "卓見": "高明的見解",
+        "旨揭": "主旨所提過",
+        "贅述": "冗長的說明",
+        "轉圜": "挽救",
+        "縝密": "周詳細密",
+        "庶幾": "幾乎",
+        "熟稔": "澈底明瞭",
+        "甚鉅": "非常重大",
+        "挹注": "注入",
+        "囿於": "受限於",
+        "誤植": "繕入錯字",
+        "毋庸": "不用、不必",
+        "無訛": "沒有錯誤",
+        "罔顧": "不予理會",
+        "邇來": "最近、近來",
+        "合先敘明": "概括的先以說明",
+        "未敢擅專": "不敢擅自定奪",
+        "應毋庸議": "不必再討論",
+        "併予澄明": "同時澄清說明",
+        "昭然若揭": "事情真相已大白",
+        "諒蒙鈞察": "上級機關大概已經收悉",
+        "礙難照辦": "抱歉無法遵照辦理",
+        "歉難照辦": "抱歉無法遵照辦理",
+        "窒礙難行": "困難重重，無法執行",
+        "刻不容緩": "不容許拖延",
+        "究其原因": "考量其原由",
+        "綜上所述": "總結上所言",
+        "莫衷一是": "無法決斷",
+        "莫此為甚": "以此最嚴重",
+        "彰明較著": "非常明確",
+        "惠示卓見": "給予高見",
+        "俾憑辦理": "辦理依據 ",
+        "為資周妥": "為求得周詳妥善",
+        "本於權責": "本於應有的職權與責任",
+        "本於職權": "本於應有的職權與責任",
+        "自行核處": "自行決定及處理",
+        "尚無不同": "完全相同",
+        "前案可稽": "以前面的案例作為憑據",
+        "兩案併陳": "兩個方案文案一同陳閱",
+        "簽稿併陳 ": "將簽與函稿同時陳閱",
+        "竣事": "完工",
+        "不無": "有",
+        "情事": "事件",
+    }
+
+    var last_input = "";
+
+    function detect() {
+        let input = document.getElementById("in").value;
+        if (input == last_input) {
+            return;
+        }
+        last_input = input;
+        for (const [key, value] of Object.entries(conv_table)) {
+            input = input.replaceAll(key, key + "（*" + value + "）");
+        }
+
+        document.getElementById("output").innerHTML = input;
+    }
+</script>
