@@ -11,10 +11,11 @@
         body {
             background-color: #ffe6b3;
         }
-        
+
         pre {
             white-space: pre-wrap;
             word-break: break-all;
+            font-size: 1.2em;
         }
     </style>
 </head>
@@ -24,7 +25,7 @@
         <h1>公文翻譯機</h1>
 
         <div class="row">
-            <textarea id="in" class="form-control" name="origin" rows="10" placeholder="請輸入欲轉換之文字..."></textarea>
+            <textarea id="in" class="form-control" name="origin" rows="10" placeholder="請輸入欲轉換之文字...">係於知悉請求之原因後 30 日之不變期間內為之，並無違背上開規定，應屬合法，合先敘明。</textarea>
         </div>
 
         <hr>
@@ -33,6 +34,20 @@
         </div>
     </div>
 </body>
+
+<div id="footer">
+    <div class="navbar navbar-inner fixed-bottom">
+        <p class="muted credit">
+            <center>
+                聯絡方式: <a href="mailto: jackkuo@jackkuo.org">jackkuo@jackkuo.org</a>
+                &nbsp;
+                原始碼: <a href="https://github.com/JackKuo-tw/tw_official_doc_trans">tw_official_doc_trans</a>
+                &nbsp;
+                其他作品: <a href="https://shudu.jackkuo.org/">舒讀</a>
+            </center>
+        </p>
+    </div>
+</div>
 
 </html>
 
@@ -137,7 +152,7 @@
         }
         last_input = input;
         for (const [key, value] of Object.entries(conv_table)) {
-            input = input.replaceAll(key, key + "（*" + value + "）");
+            input = input.replaceAll(key, key + "<b style='background-color: #bbe9fa'>（" + value + "）</b>");
         }
 
         document.getElementById("output").innerHTML = input;
